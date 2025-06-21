@@ -25,7 +25,7 @@ const MapaContainer = () => {
     // Obtener datos del backend
     const fetchCentros = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/urgencia`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/`);
         const data = await res.json();
         console.log("Datos del backend:", data);
 
