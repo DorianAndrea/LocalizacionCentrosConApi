@@ -5,4 +5,5 @@ print("Cargado controller de locate", locate )
 
 
 if __name__ == '__main__':
+    from os import environ
     app.run(debug=True, port=5001)
