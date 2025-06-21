@@ -1,161 +1,162 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useJsApiLoader } from "@react-google-maps/api";
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Button from '@mui/material/Button';
+import React, { useEffect, useState } from "react";
+import { GoogleMap, Marker, InfoWindow, useJsApiLoader,} from "@react-google-maps/api";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Button from "@mui/material/Button";
 
-const libraries = ["places", "marker"];
+const libraries = ["places"];
+const mapContainerStyle = {
+  width: "100%",
+  height: "90vh",
+};
 const mapId = "7d9e6a68029b6674";
 
-const Mapa = ({ latitude, longitude, centrosSalud }) => {
-  const mapRef = useRef(null);
-  const [map, setMap] = useState(null);
+const Mapa = ({ centrosSalud }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [nearestCentro, setNearestCentro] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
   const [distanceKm, setDistanceKm] = useState(null);
+  const [centroSeleccionado, setCentroSeleccionado] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD4ZEmTaUkJj7cm5Ux7qYsuJ8mR0AeJMBg",
-    libraries: libraries,
-    mapIds: [mapId],
+    libraries,
   });
 
-  // Fórmula de Haversine
-  const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+  // Cálculo de distancia con fórmula de Haversine
+  const getDistanciaKm = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return (R * c).toFixed(1);
   };
 
   useEffect(() => {
-    if (loadError) {
-      console.error("Error al cargar Google Maps API:", loadError);
-      return;
-    }
+    if (!isLoaded || !navigator.geolocation || centrosSalud.length === 0) return;
 
-    if (!isLoaded || !window.google || !window.google.maps || !centrosSalud || centrosSalud.length === 0) {
-      return;
-    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLatLng = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
 
-    console.log("Centros recibidos del backend:", centrosSalud);
+        setUserLocation(userLatLng);
 
-    const googleMap = new window.google.maps.Map(mapRef.current, {
-      center: {
-        lat: parseFloat(latitude) || -33.4489,
-        lng: parseFloat(longitude) || -70.6693,
-      },
-      zoom: 13,
-      mapId: mapId,
-    });
+        // Buscar centro más cercano
+        let minDistance = Infinity;
+        let nearest = null;
+        let distance = null;
 
-    setMap(googleMap);
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLatLng = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          setUserLocation(userLatLng);
-          googleMap.setCenter(userLatLng);
-          
-          // agregar un icono distinto a los centros de salud
-          const iconoUsuario = document.createElement('div');
-          iconoUsuario.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="#4CAF50'" viewBox="0 0 24 24">
-           <path d="M13.49 5.48a1.5 1.5 0 1 0-2.98 0 1.5 1.5 0 0 0 2.98 0ZM10.75 9c-.66 0-1.28.32-1.68.85L7.46 
-           12.16a2.25 2.25 0 0 0 .24 2.96l.68.68-1.65 3.69a.75.75 0 1 0 1.36.61l1.84-4.11a.75.75 0 0 0-.14-.84l-.95-.95.6-.92 2.3 2.3-.79 3.57a.75.75 0 0 0 1.47.32l.85-3.86a.75.75 0 0 0-.2-.68l-1.75-1.75.9-1.38.5 1.23c.1.26.3.48.55.6l2.63 1.32a.75.75 0 0 0 .67-1.34l-2.22-1.1-1.01-2.5A1.75 1.75 0 0 0 10.75 9Z" />
-          </svg>
-          `
-          new window.google.maps.marker.AdvancedMarkerElement({
-            map: googleMap,
-            position: userLatLng,
-            title: "Tu ubicación",
-            content: iconoUsuario
-          });
-
-          let minDistance = Infinity;
-          let nearest = null;
-          let calculatedDistance = null;
-
-          centrosSalud.forEach((centro) => {
-            const distance = getDistanceKm(
-              userLatLng.lat,
-              userLatLng.lng,
-              parseFloat(centro.latitud),
-              parseFloat(centro.longitud)
-            );
-
-            if (parseFloat(distance) < minDistance) {
-              minDistance = parseFloat(distance);
-              nearest = centro;
-              calculatedDistance = distance;
-            }
-          });
-
-          if (nearest) {
-            setNearestCentro(nearest);
-            setDistanceKm(calculatedDistance);
-            setOpenDialog(true);
+        centrosSalud.forEach((centro) => {
+          const d = getDistanciaKm(
+            userLatLng.lat,
+            userLatLng.lng,
+            parseFloat(centro.latitud),
+            parseFloat(centro.longitud)
+          );
+          if (parseFloat(d) < minDistance) {
+            minDistance = parseFloat(d);
+            nearest = centro;
+            distance = d;
           }
-        },
-        (error) => console.error("Error obteniendo ubicación del usuario", error)
-      );
-    }
+        });
 
-    centrosSalud.forEach((centro) => {
-      if (!centro.latitud || !centro.longitud) return;
+        if (nearest) {
+          setNearestCentro(nearest);
+          setDistanceKm(distance);
+          setOpenDialog(true);
+        }
+      },
+      (error) => console.error("Error obteniendo ubicación del usuario:", error)
+    );
+  }, [isLoaded, centrosSalud]);
 
-      new window.google.maps.marker.AdvancedMarkerElement({
-        map: googleMap,
-        position: {
-          lat: parseFloat(centro.latitud),
-          lng: parseFloat(centro.longitud),
-        },
-        title: centro.nombre,
-      });
-    });
-
-  }, [isLoaded, loadError, latitude, longitude, centrosSalud]);
-
-  if (loadError) return <div>Error al cargar Google Maps API</div>;
+  if (loadError) return <div>Error al cargar el mapa</div>;
   if (!isLoaded) return <div>Cargando mapa...</div>;
 
   return (
     <>
-      <div ref={mapRef} style={{ width: "100%", height: "90vh" }} />
+      <GoogleMap
+        center={userLocation || { lat: -33.4489, lng: -70.6693 }}
+        zoom={13}
+        mapContainerStyle={mapContainerStyle}
+        mapId={mapId}
+      >
+        {/* Marcador del usuario */}
+        {userLocation && (
+          <Marker
+            position={userLocation}
+            icon={{
+              url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+              scaledSize: new window.google.maps.Size(40, 40),
+            }}
+            title="Aquí Estoy"
+          />
+        )}
 
+        {/* Marcadores de centros de salud */}
+        {centrosSalud.map((centro, i) => (
+          <Marker
+            key={i}
+            position={{
+              lat: parseFloat(centro.latitud),
+              lng: parseFloat(centro.longitud),
+            }}
+            onClick={() => setCentroSeleccionado(centro)}
+            icon={{
+              url: "https://maps.google.com/mapfiles/ms/icons/hospitals.png",
+              scaledSize: new window.google.maps.Size(32, 32),
+            }}
+            title={centro.nombre}
+          />
+        ))}
+
+        {/* InfoWindow cuando se selecciona un centro */}
+        {centroSeleccionado && (
+          <InfoWindow
+            position={{
+              lat: parseFloat(centroSeleccionado.latitud),
+              lng: parseFloat(centroSeleccionado.longitud),
+            }}
+            onCloseClick={() => setCentroSeleccionado(null)}
+          >
+            <div>
+              <strong>{centroSeleccionado.nombre}</strong>
+              <p>Dirección: {centroSeleccionado.direccion} {centroSeleccionado.numero}</p>
+              <p>Teléfono: {centroSeleccionado.telefono || "Sin teléfono"}</p>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+
+      {/* Diálogo con el centro más cercano */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Centro de Urgencia Más Cercano</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            El centro de salud más cercano es:
-            <br />
             <strong>{nearestCentro?.nombre}</strong>
             <br />
-            <strong>Dirección:</strong> {nearestCentro?.direccion}
+            Dirección: {nearestCentro?.direccion}
             <br />
-            <strong>Número:</strong> {nearestCentro?.numero}
+            Número: {nearestCentro?.numero}
             <br />
-            <strong>Tipo:</strong> {nearestCentro?.tipo}
+            Tipo: {nearestCentro?.tipo}
             <br />
-            <strong>Distancia:</strong> {distanceKm} km
+            Distancia: {distanceKm} km
             {nearestCentro?.telefono && (
               <>
                 <br />
-                <strong>Teléfono:</strong> {nearestCentro.telefono}
+                Teléfono: {nearestCentro.telefono}
               </>
             )}
           </DialogContentText>
