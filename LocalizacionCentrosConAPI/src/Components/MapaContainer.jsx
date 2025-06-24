@@ -2,12 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import Mapa from "./Mapa";
 
 const MapaContainer = () => {
-  //const [latitude, setLatitude] = useState(-33.4489); // Default: Santiago
+  const [latitude, setLatitude] = useState(-33.4489); // Default: Santiago
   const [longitude, setLongitude] = useState(-70.6693);
   const [centrosSalud, setCentrosSalud] = useState([]);
   const [error, setError] = useState(null);
   useEffect(() => {
-    // Obtener ubicación del usuario
+    // ubicación del usuario
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
