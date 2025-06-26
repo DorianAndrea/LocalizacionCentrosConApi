@@ -146,9 +146,7 @@ const Mapa = ({ centrosSalud }) => {
           <DialogContentText>
             <strong>{nearestCentro?.nombre}</strong>
             <br />
-            Dirección: {nearestCentro?.direccion}
-            <br />
-            Número: {nearestCentro?.numero}
+            Dirección: {nearestCentro?.direccion} {nearestCentro?.numero}
             <br />
             Tipo: {nearestCentro?.tipo}
             <br />
