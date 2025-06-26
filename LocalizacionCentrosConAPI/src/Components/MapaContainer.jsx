@@ -27,7 +27,7 @@ const MapaContainer = () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/`);
         const data = await res.json();
-        console.log("Datos del backend:", data);
+        //console.log("Datos del backend:", data);
 
         if (!Array.isArray(data.centros)) {
           throw new Error("Formato inválido: se esperaba los 'centros'");
