@@ -5,7 +5,9 @@ const MapaContainer = () => {
   const [latitude, setLatitude] = useState(-33.4489); // Default: Santiago
   const [longitude, setLongitude] = useState(-70.6693);
   const [centrosSalud, setCentrosSalud] = useState([]);
+  const [ubicacionOk, setUbicacionOk] = useState(false); // estado que ayuda a controlar el renderizado(la retrasa) hasta que la ubicacion del usuario
   const [error, setError] = useState(null);
+  
   useEffect(() => {
     // ubicación del usuario
     if (navigator.geolocation) {
@@ -13,13 +15,15 @@ const MapaContainer = () => {
         (position) => {
           setLatitude(position.coords.latitude);
           setLongitude(position.coords.longitude);
+          setUbicacionOk(true) //solo se activa despues de obtener ubicacion
         },
         (err) => {
-          console.warn(
-            "No se pudo obtener ubicación"
-          );
+          console.warn("No se pudo obtener ubicación, usando la ubicación por defecto");
+          setUbicacionOk(true)
         }
       );
+    }else{
+      setUbicacionOk(true)
     }
 
     // Obtener datos del backend
@@ -48,11 +52,16 @@ const MapaContainer = () => {
   return (
     <div>
       {error && <div style={{ color: "red" }}>{error}</div>}
-      <Mapa
+      {!ubicacionOk ? (
+        <p> Cargando ubicacación del usuario...</p>
+      ) :(
+        <Mapa
         latitude={latitude}
         longitude={longitude}
         centrosSalud={centrosSalud}
-      />
+      />   
+      )}
+      
     </div>
   );
 };
