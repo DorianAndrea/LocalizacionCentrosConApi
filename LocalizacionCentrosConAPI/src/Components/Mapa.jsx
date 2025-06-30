@@ -83,6 +83,10 @@ const Mapa = ({ centrosSalud }) => {
 
   if (loadError) return <div>Error al cargar el mapa</div>;
   if (!isLoaded) return <div>Cargando mapa...</div>;
+  
+  if (!userLocation) {
+  return <div>📍 Obteniendo ubicación del usuario...</div>;
+}
 
   return (
     <>
