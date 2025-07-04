@@ -6,6 +6,8 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const libraries = ["places"];
 const mapContainerStyle = {
