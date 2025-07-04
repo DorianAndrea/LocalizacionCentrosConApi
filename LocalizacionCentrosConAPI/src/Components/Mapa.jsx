@@ -81,11 +81,15 @@ const Mapa = ({ centrosSalud }) => {
     );
   }, [isLoaded, centrosSalud]);
 
-  if (loadError) return <div>Error al cargar el mapa</div>;
-  if (!isLoaded) return <div>Cargando mapa...</div>;
-  
-  if (!userLocation) {
-  return <div>📍 Obteniendo ubicación del usuario...</div>;
+  if (loadError) return <div>Error al cargar Google Maps API</div>;
+
+if (!isLoaded || !userLocation || centrosSalud.length === 0) {
+  return (
+    <Box sx={{display: 'flex', justifyContent: 'center', alignItems:'center', height:'80vh'}}>
+      <CircularProgress color="success" size={60} />
+      <p style={{ marginTop: 10 }}>Cargando ubicación y centros de urgencia...</p>
+    </Box>
+  );
 }
 
   return (
