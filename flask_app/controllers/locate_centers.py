@@ -7,7 +7,7 @@ import json
 @app.route('/')
 @cross_origin()
 def locate():
-    ruta_json = os.path.join(app.root_path, 'static', 'establecimientos_salud_urgencias_chile.json')
+    ruta_json = os.path.join(app.root_path, 'static', 'centros.json')
     print(f"Ruta del JSON: {ruta_json}")
 
     try:
