@@ -124,7 +124,7 @@ if (!isLoaded || !userLocation || centrosSalud.length === 0) {
             }}
             onClick={() => setCentroSeleccionado(centro)}
             icon={{
-              url: "https://maps.google.com/mapfiles/ms/icons/hospitals.png",
+              url: "https://maps.google.com/mapfiles/ms/icons/hospital.png",
               scaledSize: new window.google.maps.Size(32, 32),
             }}
             title={centro.nombre}
