@@ -4,7 +4,8 @@ from flask_cors import cross_origin
 import os
 import json
 
-@app.route('/')
+
+@app.route('/', methods=['GET'])
 @cross_origin()
 def locate():
     ruta_json = os.path.join(app.root_path, 'static', 'centros.json')
@@ -43,7 +44,7 @@ def locate():
         if centros:
             print(f"Primer centro: {centros[0]}")
         return jsonify({"centros": centros})
-    
+
     except Exception as e:
         print(f"Error cargando JSON: {e}")
         return jsonify({"centros": [], "error": str(e)})
